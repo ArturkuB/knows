@@ -1,5 +1,6 @@
 import io
 import json
+import random
 
 import networkx as nx
 
@@ -30,7 +31,7 @@ class OutputFormat:
         Returns:
             str: The graph in the specified format.
         """
-        format_methods = {'graphml': self._to_graphml, 'yarspg': self._to_yarspg, 'gexf': self._to_gexf,
+        format_methods = {'graphml': self._to_graphml, 'yarspg': self._to_yarspg, 'yarspg-rdf': self._to_yarspg_rdf, 'gexf': self._to_gexf,
             'gml': self._to_gml, 'svg': self._to_svg, 'adjacency_list': self._to_adjacency_list,
             'multiline_adjacency_list': self._to_multiline_adjacency_list, 'edge_list': self._to_edge_list,
             'json': self._to_json}
@@ -53,6 +54,24 @@ class OutputFormat:
         nodes_output = [self._format_node_yarspg(node) for node in self.graph.graph.nodes(data=True)]
         edges_output = [self._format_edge_yarspg(edge) for edge in self.graph.graph.edges(data=True)]
         return '\n'.join(nodes_output + edges_output)
+
+    def _to_yarspg_rdf(self) -> str:
+        """Converts the graph to YARS-PG RDF format.
+
+        Returns:
+            str: The graph in YARS-PG RDF format.
+        """
+        nodes_section = '# Nodes\n'
+        edges_section = '\n# Edges\n'
+        nodes_output = [self._format_node_yarspg_rdf(node) for node in self.graph.graph.nodes(data=True)]
+        edges_output = [self._format_edge_yarspg_rdf(edge) for edge in self.graph.graph.edges(data=True)]
+
+        # Konwertowanie list na stringi i dołączanie do sekcji
+        nodes_output_str = '\n'.join(nodes_output)
+        edges_output_str = '\n'.join(edges_output)
+
+        # Składanie wszystkiego w jeden wynikowy string
+        return f"{nodes_section}{nodes_output_str}{edges_section}{edges_output_str}"
 
     @staticmethod
     def _format_node_yarspg(node: tuple) -> str:
@@ -80,6 +99,38 @@ class OutputFormat:
             str: The edge in YARS-PG format.
         """
         u, v, attributes = edge
+        label = attributes.get('label', 'label')
+        prop_list = ', '.join([f'"{key}": "{value}"' for key, value in attributes.items() if key != 'label'])
+        return f"({u})-({{\"{label}\"}}[{prop_list}])->({v})"
+
+    @staticmethod
+    def _format_node_yarspg_rdf(node: tuple) -> str:
+        """Formats a node in YARS-PG RDF format.
+
+        Args:
+            node (tuple): A tuple containing the node ID and attributes.
+
+        Returns:
+            str: The node in YARS-PG format.
+        """
+        node_id = node[0]
+        attributes = {'label': 'IRI', '@value': 'https://w3id.org/MON/person.owl#Person'}
+        label = attributes.get('label', 'label')
+        prop_list = ', '.join([f'"{key}": "{value}"' for key, value in attributes.items() if key != 'label'])
+        return f"({node_id} {{\"{label}\"}}[{prop_list}])"
+
+    @staticmethod
+    def _format_edge_yarspg_rdf(edge: tuple) -> str:
+        """Formats an edge in YARS-PG RDF format.
+
+        Args:
+            edge (tuple): A tuple containing the source node, target node, and attributes.
+
+        Returns:
+            str: The edge in YARS-PG format.
+        """
+        u, v = edge[:2]
+        attributes = {'label': 'IRI', '@value': 'https://w3id.org/MON/person.owl#friendOf'}
         label = attributes.get('label', 'label')
         prop_list = ', '.join([f'"{key}": "{value}"' for key, value in attributes.items() if key != 'label'])
         return f"({u})-({{\"{label}\"}}[{prop_list}])->({v})"

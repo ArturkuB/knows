@@ -21,7 +21,7 @@ class CommandLineInterface:
             prog='knows')
         parser.add_argument("nodes", type=int, nargs='?', default=None, help="Number of nodes in the graph. Selected randomly if not specified.")
         parser.add_argument("edges", type=int, nargs='?', default=None, help="Number of edges in the graph. Selected randomly if not specified.")
-        parser.add_argument("-f", "--format", choices=['graphml', 'yarspg', 'gexf', 'gml', 'svg', 'adjacency_list',
+        parser.add_argument("-f", "--format", choices=['graphml', 'yarspg', 'yarspg-rdf', 'gexf', 'gml', 'svg', 'adjacency_list',
                                                        'multiline_adjacency_list', 'edge_list', 'json'],
                             default='graphml', help="Format to output the graph. Default: graphml.")
         parser.add_argument("-d", "--draw", action="store_true",
